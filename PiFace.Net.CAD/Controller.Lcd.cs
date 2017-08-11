@@ -36,6 +36,7 @@ namespace PiFace.Net.CAD {
 				Autoscroll = false;
 
 				Display = true;
+				Backlight = true;
 				if ( enableCursor ) {
 					Cursor = true;
 					Blink = true;
@@ -49,14 +50,14 @@ namespace PiFace.Net.CAD {
 			/// </summary>
 			/// <param name="message">The message.</param>
 			public void Write(string message) {
-				SendCommand(Command.SetDdRmaAddr | currentCursorAddress_);
+				SendCommand(Command.SetDdRmaAddr | CursorAddress);
 
 				foreach ( char c in message ) {
 					if ( c == '\n' ) {
 						CursorPosition = (0, 1);
 					} else {
 						SendData(c);
-						currentCursorAddress_++;
+						CursorAddress++;
 					}
 				}
 			}
@@ -66,7 +67,7 @@ namespace PiFace.Net.CAD {
 			/// </summary>
 			/// <param name="message">The message.</param>
 			public void WriteScrollingText(string message) {
-				SendCommand(Command.SetDdRmaAddr | currentCursorAddress_);
+				SendCommand(Command.SetDdRmaAddr | CursorAddress);
 
 				foreach ( char c in message ) {
 					if ( c == '\n' ) {
@@ -143,21 +144,7 @@ namespace PiFace.Net.CAD {
 			}
 
 			/// <summary>
-			/// Gets and sets Blink Cursor ON(<value>true</value>)/OFF(<value>false</value>)
-			/// </summary>
-			public bool Blink {
-				get => (currentDisplayControl_ & Flag.BlinkOn) >> 0 == 1;
-				set {
-					if ( value )
-						currentDisplayControl_ &= 0xff ^ Flag.BlinkOn;
-					else
-						currentDisplayControl_ |= Flag.BlinkOn;
-					SendCommand(Command.DisplayControl | currentDisplayControl_);
-				}
-			}
-
-			/// <summary>
-			/// Gets and sets Cursor ON(<value>true</value>)/OFF(<value>false</value>)
+			/// Gets and sets underline Cursor ON(<value>true</value>)/OFF(<value>false</value>)
 			/// </summary>
 			public bool Cursor {
 				get => (currentDisplayControl_ & Flag.CursorOn) >> 1 == 1;
@@ -166,6 +153,20 @@ namespace PiFace.Net.CAD {
 						currentDisplayControl_ |= Flag.CursorOn;
 					else
 						currentDisplayControl_ &= 0xff ^ Flag.CursorOn;
+					SendCommand(Command.DisplayControl | currentDisplayControl_);
+				}
+			}
+
+			/// <summary>
+			/// Gets and sets Blink Cursor ON(<value>true</value>)/OFF(<value>false</value>)
+			/// </summary>
+			public bool Blink {
+				get => (currentDisplayControl_ & Flag.BlinkOn) >> 0 == 1;
+				set {
+					if ( value )
+						currentDisplayControl_ |= Flag.BlinkOn;
+					else
+						currentDisplayControl_ &= 0xff ^ Flag.BlinkOn;
 					SendCommand(Command.DisplayControl | currentDisplayControl_);
 				}
 			}
@@ -194,7 +195,7 @@ namespace PiFace.Net.CAD {
 						currentEntryMode_ |= Flag.EntryShiftIncrement;
 					else
 						currentEntryMode_ &= 0xff ^ Flag.EntryShiftIncrement;
-					SendCommand(Command.EntryModeSet | currentDisplayControl_);
+					SendCommand(Command.EntryModeSet | currentEntryMode_);
 				}
 			}
 
@@ -239,9 +240,9 @@ namespace PiFace.Net.CAD {
 			/// </summary>
 			/// <param name="i">Number of bitmap, which should be writet</param>
 			public void WriteCustomBitmap(uint i) {
-				SendCommand(Command.SetDdRmaAddr | currentCursorAddress_);
+				SendCommand(Command.SetDdRmaAddr | CursorAddress);
 				SendData(i);
-				currentCursorAddress_++;
+				CursorAddress++;
 			}
 
 			/// <summary>
