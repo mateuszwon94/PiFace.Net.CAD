@@ -159,7 +159,7 @@ namespace PiFace.Net.CAD {
 			}
 
 			public Mode Display {
-				get => (Mode)curDisplayControl;
+				get => (Mode)((curDisplayControl & pifacecadData.LCD_DISPLAYON) >> 2);
 				set {
 					switch ( value ) {
 						case Mode.Off:
@@ -175,7 +175,7 @@ namespace PiFace.Net.CAD {
 			}
 
 			public Mode Blink {
-				get => (Mode)curDisplayControl;
+				get => (Mode)((curDisplayControl & pifacecadData.LCD_BLINKON) >> 0);
 				set {
 					switch ( value ) {
 						case Mode.Off:
@@ -191,7 +191,7 @@ namespace PiFace.Net.CAD {
 			}
 
 			public Mode Cursor {
-				get => (Mode)curDisplayControl;
+				get => (Mode)((curDisplayControl & pifacecadData.LCD_DISPLAYCONTROL) >> 1);
 				set {
 					if ( value == Mode.Off ) {
 						curDisplayControl &= 0xff ^ pifacecadData.LCD_CURSORON;
@@ -204,13 +204,13 @@ namespace PiFace.Net.CAD {
 			}
 
 			public Mode Autoscroll {
-				get => (Mode)curDisplayControl;
+				get => (Mode)((curEntryMode & pifacecadData.LCD_ENTRYSHIFTINCREMENT) >> 0);
 				set {
 					if ( value == Mode.Off ) {
-						curDisplayControl &= 0xff ^ pifacecadData.LCD_ENTRYSHIFTINCREMENT;
+						curEntryMode &= 0xff ^ pifacecadData.LCD_ENTRYSHIFTINCREMENT;
 						SendCommand(pifacecadData.LCD_ENTRYMODESET | curDisplayControl);
 					} else if ( value == Mode.On ) {
-						curDisplayControl |= pifacecadData.LCD_ENTRYSHIFTINCREMENT;
+						curEntryMode |= pifacecadData.LCD_ENTRYSHIFTINCREMENT;
 						SendCommand(pifacecadData.LCD_ENTRYMODESET | curDisplayControl);
 					}
 				}
