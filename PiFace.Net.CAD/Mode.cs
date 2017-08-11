@@ -1,6 +1,6 @@
 ﻿namespace PiFace.Net.CAD {
 	public enum Mode {
-		Off = 0,
-		On = 1,
+		RightToLeft = 0,
+		LeftToRight = 1,
 	}
 }

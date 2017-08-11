@@ -10,7 +10,8 @@ namespace PiFace.Net.CAD {
 		/// <summary>
 		/// Opens the display to messages.
 		/// </summary>
-		public Controller() {
+		/// <param name="enableCursor">If <value>true</value> sets ON Cursor and Blink on Screen.</param>
+		public Controller(bool enableCursor = true) {
 			// All PiFace Digital are connected to the same SPI bus, only need 1 fd.
 			if ( (mcp23S17Fd = Libmcp23s17Wrapper.mcp23s17_open(bus, chipSelect)) < 0 )
 				throw new OpenException("Cannot open connection to PiFace Digital");
@@ -36,10 +37,10 @@ namespace PiFace.Net.CAD {
 			// enable interrupts
 			Libmcp23s17Wrapper.mcp23s17_write_reg(0xFF, Mcp23s17Data.GPINTENA, hardwareAddr, mcp23S17Fd);
 
-			Screen = new LCD(this);
+			Screen = new Lcd(this, enableCursor);
 		}
 
-		public LCD Screen { get; private set; }
+		public Lcd Screen { get; private set; }
 
 		public uint ReadSwitches()
 			=> Libmcp23s17Wrapper.mcp23s17_read_reg(switchPort, hardwareAddr, mcp23S17Fd);
