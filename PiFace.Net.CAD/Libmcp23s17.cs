@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
 namespace PiFace.Net.CAD {
-	internal class Libmcp23s17Wrapper {
+	internal partial class Libmcp23s17 {
 		[DllImport("libmcp23s17.so")]
 		internal static extern int mcp23s17_open(int bus, int chip_select);
 

@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace PiFace.Net.CAD {
 	public partial class Controller {
-		public class Lcd : IDisposable {
+		public partial class Lcd : IDisposable {
 			/// <summary>
 			/// Initializes this instance.
 			/// </summary>
@@ -12,19 +12,19 @@ namespace PiFace.Net.CAD {
 			internal Lcd(Controller parent, bool enableCursor = true) {
 				parent_ = parent;
 
-				Thread.Sleep(pifacecadData.DELAY_SETUP_0_NS);
-				Libmcp23s17Wrapper.mcp23s17_write_reg(0x3, parent_.lcdPort, parent_.hardwareAddr, parent_.mcp23S17Fd);
+				Thread.Sleep(Delay.Setup0Ns);
+				Libmcp23s17.mcp23s17_write_reg(0x3, parent_.lcdPort_, parent_.hardwareAddr_, parent_.mcp23s17Fd_);
 				PulseEnable();
-				Thread.Sleep(pifacecadData.DELAY_SETUP_1_NS);
-				Libmcp23s17Wrapper.mcp23s17_write_reg(0x3, parent_.lcdPort, parent_.hardwareAddr, parent_.mcp23S17Fd);
+				Thread.Sleep(Delay.Setup1Ns);
+				Libmcp23s17.mcp23s17_write_reg(0x3, parent_.lcdPort_, parent_.hardwareAddr_, parent_.mcp23s17Fd_);
 				PulseEnable();
-				Thread.Sleep(pifacecadData.DELAY_SETUP_2_NS);
-				Libmcp23s17Wrapper.mcp23s17_write_reg(0x3, parent_.lcdPort, parent_.hardwareAddr, parent_.mcp23S17Fd);
+				Thread.Sleep(Delay.Setup2Ns);
+				Libmcp23s17.mcp23s17_write_reg(0x3, parent_.lcdPort_, parent_.hardwareAddr_, parent_.mcp23s17Fd_);
 				PulseEnable();
-				Libmcp23s17Wrapper.mcp23s17_write_reg(0x2, parent_.lcdPort, parent_.hardwareAddr, parent_.mcp23S17Fd);
+				Libmcp23s17.mcp23s17_write_reg(0x2, parent_.lcdPort_, parent_.hardwareAddr_, parent_.mcp23s17Fd_);
 				PulseEnable();
-				currentFunctionSet_ |= pifacecadData.LCD_4BITMODE | pifacecadData.LCD_2LINE | pifacecadData.LCD_5X8DOTS;
-				SendCommand(pifacecadData.LCD_FUNCTIONSET | currentFunctionSet_);
+				currentFunctionSet_ |= Flag.FoutBitMode | Flag.TwoLine | Flag.FiveXEightDots;
+				SendCommand(Command.FunctionSet | currentFunctionSet_);
 
 				Display = false;
 				Cursor = false;
@@ -49,7 +49,7 @@ namespace PiFace.Net.CAD {
 			/// </summary>
 			/// <param name="message">The message.</param>
 			public void Write(string message) {
-				SendCommand(pifacecadData.LCD_SETDDRAMADDR | currentCursorAddress_);
+				SendCommand(Command.SetDdRmaAddr | currentCursorAddress_);
 
 				foreach ( char c in message ) {
 					if ( c == '\n' ) {
@@ -66,7 +66,7 @@ namespace PiFace.Net.CAD {
 			/// </summary>
 			/// <param name="message">The message.</param>
 			public void WriteScrollingText(string message) {
-				SendCommand(pifacecadData.LCD_SETDDRAMADDR | currentCursorAddress_);
+				SendCommand(Command.SetDdRmaAddr | currentCursorAddress_);
 
 				foreach ( char c in message ) {
 					if ( c == '\n' ) {
@@ -82,8 +82,8 @@ namespace PiFace.Net.CAD {
 			/// Clears text on the display.
 			/// </summary>
 			public void Clear() {
-				SendCommand(pifacecadData.LCD_CLEARDISPLAY);
-				Thread.Sleep(pifacecadData.DELAY_CLEAR_NS);
+				SendCommand(Command.ClearDisplay);
+				Thread.Sleep(Delay.ClearNs);
 				CursorAddress = 0;
 			}
 
@@ -97,10 +97,10 @@ namespace PiFace.Net.CAD {
 			public (uint Col, uint Row) CursorPosition {
 				get => (AddressToCol(CursorAddress), AddressToRow(CursorAddress));
 				set {
-					uint col = Math.Max(0, Math.Min(value.Col, (pifacecadData.LCD_RAM_WIDTH / 2) - 1));
-					uint row = Math.Max(0, Math.Min(value.Row, pifacecadData.LCD_MAX_LINES - 1));
+					uint col = Math.Max(0, Math.Min(value.Col, (Flag.RamWidth / 2) - 1));
+					uint row = Math.Max(0, Math.Min(value.Row, Flag.MaxLines - 1));
 					CursorAddress = ColRowToAddress(col, row);
-					Thread.Sleep(pifacecadData.DELAY_SETUP_0_NS);
+					Thread.Sleep(Delay.Setup0Ns);
 				}
 			}
 
@@ -110,8 +110,8 @@ namespace PiFace.Net.CAD {
 			public uint CursorAddress {
 				get => currentCursorAddress_;
 				set {
-					currentCursorAddress_ = value % pifacecadData.LCD_RAM_WIDTH;
-					SendCommand(pifacecadData.LCD_SETDDRAMADDR | currentCursorAddress_);
+					currentCursorAddress_ = value % Flag.RamWidth;
+					SendCommand(Command.SetDdRmaAddr | currentCursorAddress_);
 				}
 			}
 
@@ -119,8 +119,8 @@ namespace PiFace.Net.CAD {
 			/// Moves corsor to home position (0, 0)
 			/// </summary>
 			public void Home() {
-				SendCommand(pifacecadData.LCD_RETURNHOME);
-				Thread.Sleep(pifacecadData.DELAY_CLEAR_NS);
+				SendCommand(Command.ReturnHome);
+				Thread.Sleep(Delay.ClearNs);
 				CursorAddress = 0;
 			}
 
@@ -132,13 +132,13 @@ namespace PiFace.Net.CAD {
 			/// Gets and sets Display ON(<value>true</value>)/OFF(<value>false</value>)
 			/// </summary>
 			public bool Display {
-				get => (currentDisplayControl_ & pifacecadData.LCD_DISPLAYON) >> 2 == 1;
+				get => (currentDisplayControl_ & Flag.DisplayOn) >> 2 == 1;
 				set {
 					if ( value )
-						currentDisplayControl_ |= pifacecadData.LCD_DISPLAYON;
+						currentDisplayControl_ |= Flag.DisplayOn;
 					else
-						currentDisplayControl_ &= 0xff ^ pifacecadData.LCD_DISPLAYON;
-					SendCommand(pifacecadData.LCD_DISPLAYCONTROL | currentDisplayControl_);
+						currentDisplayControl_ &= 0xff ^ Flag.DisplayOn;
+					SendCommand(Command.DisplayControl | currentDisplayControl_);
 				}
 			}
 
@@ -146,13 +146,13 @@ namespace PiFace.Net.CAD {
 			/// Gets and sets Blink Cursor ON(<value>true</value>)/OFF(<value>false</value>)
 			/// </summary>
 			public bool Blink {
-				get => (currentDisplayControl_ & pifacecadData.LCD_BLINKON) >> 0 == 1;
+				get => (currentDisplayControl_ & Flag.BlinkOn) >> 0 == 1;
 				set {
 					if ( value )
-						currentDisplayControl_ &= 0xff ^ pifacecadData.LCD_BLINKON;
+						currentDisplayControl_ &= 0xff ^ Flag.BlinkOn;
 					else
-						currentDisplayControl_ |= pifacecadData.LCD_BLINKON;
-					SendCommand(pifacecadData.LCD_DISPLAYCONTROL | currentDisplayControl_);
+						currentDisplayControl_ |= Flag.BlinkOn;
+					SendCommand(Command.DisplayControl | currentDisplayControl_);
 				}
 			}
 
@@ -160,13 +160,13 @@ namespace PiFace.Net.CAD {
 			/// Gets and sets Cursor ON(<value>true</value>)/OFF(<value>false</value>)
 			/// </summary>
 			public bool Cursor {
-				get => (currentDisplayControl_ & pifacecadData.LCD_DISPLAYCONTROL) >> 1 == 1;
+				get => (currentDisplayControl_ & Flag.CursorOn) >> 1 == 1;
 				set {
 					if ( value )
-						currentDisplayControl_ |= pifacecadData.LCD_CURSORON;
+						currentDisplayControl_ |= Flag.CursorOn;
 					else
-						currentDisplayControl_ &= 0xff ^ pifacecadData.LCD_CURSORON;
-					SendCommand(pifacecadData.LCD_DISPLAYCONTROL | currentDisplayControl_);
+						currentDisplayControl_ &= 0xff ^ Flag.CursorOn;
+					SendCommand(Command.DisplayControl | currentDisplayControl_);
 				}
 			}
 
@@ -175,9 +175,9 @@ namespace PiFace.Net.CAD {
 			/// </summary>
 			public bool Backlight {
 				get => currrentBacklight_;
-				set => Libmcp23s17Wrapper.mcp23s17_write_bit(value ? 1u : 0u, pifacecadData.PIN_BACKLIGHT, parent_.lcdPort,
-				                                             parent_.hardwareAddr,
-				                                             parent_.mcp23S17Fd);
+				set => Libmcp23s17.mcp23s17_write_bit(value ? 1u : 0u, Pin.Backlight, parent_.lcdPort_,
+				                                      parent_.hardwareAddr_,
+				                                      parent_.mcp23s17Fd_);
 			}
 
 			#endregion // DisplayProperties
@@ -188,13 +188,13 @@ namespace PiFace.Net.CAD {
 			/// Gets and sets Autoscroll ON(<value>true</value>)/OFF(<value>false</value>)
 			/// </summary>
 			public bool Autoscroll {
-				get => (currentEntryMode_ & pifacecadData.LCD_ENTRYSHIFTINCREMENT) >> 0 == 1;
+				get => (currentEntryMode_ & Flag.EntryShiftIncrement) >> 0 == 1;
 				set {
 					if ( value )
-						currentEntryMode_ |= pifacecadData.LCD_ENTRYSHIFTINCREMENT;
+						currentEntryMode_ |= Flag.EntryShiftIncrement;
 					else
-						currentEntryMode_ &= 0xff ^ pifacecadData.LCD_ENTRYSHIFTINCREMENT;
-					SendCommand(pifacecadData.LCD_ENTRYMODESET | currentDisplayControl_);
+						currentEntryMode_ &= 0xff ^ Flag.EntryShiftIncrement;
+					SendCommand(Command.EntryModeSet | currentDisplayControl_);
 				}
 			}
 
@@ -202,13 +202,13 @@ namespace PiFace.Net.CAD {
 			/// Gets and sets EntryMode. Cursor moves accordingly.
 			/// </summary>
 			public Mode EntryMode {
-				get => (Mode)((currentEntryMode_ & pifacecadData.LCD_ENTRYLEFT) >> 1);
+				get => (Mode)((currentEntryMode_ & Flag.EntryLeft) >> 1);
 				set {
 					if ( value == Mode.LeftToRight )
-						currentEntryMode_ |= pifacecadData.LCD_ENTRYLEFT;
+						currentEntryMode_ |= Flag.EntryLeft;
 					else
-						currentEntryMode_ &= 0xff ^ pifacecadData.LCD_ENTRYLEFT;
-					SendCommand(pifacecadData.LCD_ENTRYMODESET | currentEntryMode_);
+						currentEntryMode_ &= 0xff ^ Flag.EntryLeft;
+					SendCommand(Command.EntryModeSet | currentEntryMode_);
 				}
 			}
 
@@ -216,18 +216,18 @@ namespace PiFace.Net.CAD {
 			/// Move cursor left
 			/// </summary>
 			public void MoveLeft() {
-				SendCommand(pifacecadData.LCD_CURSORSHIFT |
-				            pifacecadData.LCD_DISPLAYMOVE |
-				            pifacecadData.LCD_MOVELEFT);
+				SendCommand(Command.CursorShift |
+				            Flag.DisplayMove |
+				            Flag.MoveLeft);
 			}
 
 			/// <summary>
 			/// Move cursor right
 			/// </summary>
 			public void MoveRight() {
-				SendCommand(pifacecadData.LCD_CURSORSHIFT |
-				            pifacecadData.LCD_DISPLAYMOVE |
-				            pifacecadData.LCD_MOVERIGHT);
+				SendCommand(Command.CursorShift |
+				            Flag.DisplayMove |
+				            Flag.MoveRight);
 			}
 
 			#endregion // EntryModeProperties
@@ -239,7 +239,7 @@ namespace PiFace.Net.CAD {
 			/// </summary>
 			/// <param name="i">Number of bitmap, which should be writet</param>
 			public void WriteCustomBitmap(uint i) {
-				SendCommand(pifacecadData.LCD_SETDDRAMADDR | currentCursorAddress_);
+				SendCommand(Command.SetDdRmaAddr | currentCursorAddress_);
 				SendData(i);
 				currentCursorAddress_++;
 			}
@@ -255,7 +255,7 @@ namespace PiFace.Net.CAD {
 				if ( i > 7 )
 					throw new IndexOutOfRangeException($"Avaliable 8 slots, but given is {i}");
 
-				SendCommand(pifacecadData.LCD_SETCGRAMADDR | (i << 3));
+				SendCommand(Command.SetCgRamAddr | (i << 3));
 				for ( int j = 0 ; j < 8 ; j++ )
 					SendData(bitmap[j]);
 			}
@@ -269,13 +269,13 @@ namespace PiFace.Net.CAD {
 			/// </summary>
 			/// <param name="byteNumber">The byte number.</param>
 			private void SendByte(uint byteNumber) {
-				uint currentState = Libmcp23s17Wrapper.mcp23s17_read_reg(parent_.lcdPort, parent_.hardwareAddr, parent_.mcp23S17Fd);
+				uint currentState = Libmcp23s17.mcp23s17_read_reg(parent_.lcdPort_, parent_.hardwareAddr_, parent_.mcp23s17Fd_);
 				currentState &= 0xF0; // clear the data bits
 				uint newByte = currentState | ((byteNumber >> 4) & 0xF); // set nibble
-				Libmcp23s17Wrapper.mcp23s17_write_reg(newByte, parent_.lcdPort, parent_.hardwareAddr, parent_.mcp23S17Fd);
+				Libmcp23s17.mcp23s17_write_reg(newByte, parent_.lcdPort_, parent_.hardwareAddr_, parent_.mcp23s17Fd_);
 				PulseEnable();
 				newByte = currentState | (byteNumber & 0xF); // set nibble
-				Libmcp23s17Wrapper.mcp23s17_write_reg(newByte, parent_.lcdPort, parent_.hardwareAddr, parent_.mcp23S17Fd);
+				Libmcp23s17.mcp23s17_write_reg(newByte, parent_.lcdPort_, parent_.hardwareAddr_, parent_.mcp23s17Fd_);
 				PulseEnable();
 			}
 
@@ -287,7 +287,7 @@ namespace PiFace.Net.CAD {
 				SetRs(1);
 				SendByte(data);
 
-				Thread.Sleep(pifacecadData.DELAY_SETTLE_NS);
+				Thread.Sleep(Delay.SettleNs);
 			}
 
 			/// <summary>
@@ -295,29 +295,29 @@ namespace PiFace.Net.CAD {
 			/// </summary>
 			/// <param name="state">The state.</param>
 			private void SetRs(uint state) =>
-				Libmcp23s17Wrapper.mcp23s17_write_bit(state, pifacecadData.PIN_RS,
-				                                      parent_.lcdPort,
-				                                      parent_.hardwareAddr,
-				                                      parent_.mcp23S17Fd);
+				Libmcp23s17.mcp23s17_write_bit(state, Pin.Rs,
+				                               parent_.lcdPort_,
+				                               parent_.hardwareAddr_,
+				                               parent_.mcp23s17Fd_);
 
 			/// <summary>
 			/// Sets the enable.
 			/// </summary>
 			/// <param name="state">The state of LCD Display.</param>
 			private void SetEnable(uint state)
-				=> Libmcp23s17Wrapper.mcp23s17_write_bit(state, pifacecadData.PIN_ENABLE,
-				                                         parent_.lcdPort,
-				                                         parent_.hardwareAddr,
-				                                         parent_.mcp23S17Fd);
+				=> Libmcp23s17.mcp23s17_write_bit(state, Pin.Enable,
+				                                  parent_.lcdPort_,
+				                                  parent_.hardwareAddr_,
+				                                  parent_.mcp23s17Fd_);
 
 			/// <summary>
 			/// Pulses the enable for the display.
 			/// </summary>
 			private void PulseEnable() {
 				SetEnable(1);
-				Thread.Sleep(pifacecadData.DELAY_PULSE_NS);
+				Thread.Sleep(Delay.PulseNs);
 				SetEnable(0);
-				Thread.Sleep(pifacecadData.DELAY_PULSE_NS);
+				Thread.Sleep(Delay.PulseNs);
 			}
 
 			/// <summary>
@@ -327,7 +327,7 @@ namespace PiFace.Net.CAD {
 			private void SendCommand(uint command) {
 				SetRs(0);
 				SendByte(command);
-				Thread.Sleep(pifacecadData.DELAY_SETTLE_NS);
+				Thread.Sleep(Delay.SettleNs);
 			}
 
 			/// <summary>
@@ -336,11 +336,11 @@ namespace PiFace.Net.CAD {
 			/// <param name="col">The coloumn.</param>
 			/// <param name="row">The row.</param>
 			/// <returns>Returns the address</returns>
-			private uint ColRowToAddress(uint col, uint row) => col + pifacecadData.ROW_OFFSETS[row];
+			private uint ColRowToAddress(uint col, uint row) => col + Flag.RowOffsets[row];
 
-			private uint AddressToCol(uint address) => address % pifacecadData.ROW_OFFSETS[1];
+			private uint AddressToCol(uint address) => address % Flag.RowOffsets[1];
 
-			private uint AddressToRow(uint address) => address > pifacecadData.ROW_OFFSETS[1] ? 1u : 0u;
+			private uint AddressToRow(uint address) => address > Flag.RowOffsets[1] ? 1u : 0u;
 
 			private uint currentCursorAddress_ = 0;
 			private uint currentDisplayControl_ = 0;

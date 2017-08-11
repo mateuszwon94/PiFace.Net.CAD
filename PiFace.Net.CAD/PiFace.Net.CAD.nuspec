@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>MWin.PiFace.Net.CAD</id>
+    <version>1.0.0</version>
+    <title>PiFace.Net.CAD</title>
+    <authors>Mateusz Winiarski</authors>
+    <owners>Mateusz Winiarski</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>[UNOFFICIAL] PiFaceControl and Display .Net wrapper</description>
+    <releaseNotes>Initial Release. Works only LCD. Button or IR not implemented yet.</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>PiFace CAD PiFaceCAD RaspberryPi Raspberry</tags>
+  </metadata>
+</package>
