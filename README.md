@@ -8,9 +8,14 @@ All steps needed to be done to run app which use this library are described belo
 ## Done ##
  - Rewrite all LCD function from C library.
     - User can clear screen, enable and disable display, cursor, blinking cursor, backlight, autoscroll, change entry mode, manipulate cursor position, write text or custom bitmap and also store it.
+ - Implemented events for press/release buttons and change state of switch controll.
+    - ButtonsArray is first four buttons (group together).
+    - SingleButton is fifth button (located the most at right).
+    - Switch is switch controller located at top of display.
+    - User can change intervals in which button state is checked.
+    - User can change time after which button is holded (not clicked).
 
 ## To Be Done ##
- - Implement events handling for clicking and holding buttons and change switch position.
  - If possible implement IR support.
 
 ## Examples ##

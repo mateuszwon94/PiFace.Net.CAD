@@ -9,17 +9,27 @@
 Works only on linux. Testet only on Raspbarian on Raspberry 3B.
 To run app you must have libmcp23s17.so in application folder.
 All information could be found on git. https://github.com/mateuszwon94/PiFace.Net.CAD</Description>
-    <PackageReleaseNotes>Initial Release. Works only LCD. Button or IR not implemented yet.</PackageReleaseNotes>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <PackageReleaseNotes>Add buttons and switch events support.</PackageReleaseNotes>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <Copyright>Copyright 2017</Copyright>
     <PackageTags>PiFace CAD PiFaceCAD RaspberryPi Raspberry PiFace.Net PiFace.Net.CAD PiFace.CAD.Net</PackageTags>
     <RepositoryUrl>https://github.com/mateuszwon94/PiFace.Net.CAD</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <FileVersion>1.0.1.0</FileVersion>
-    <Version>1.0.1</Version>
+    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.1.0</Version>
     <PackageProjectUrl>https://github.com/mateuszwon94/PiFace.Net.CAD</PackageProjectUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="EventArg\SwitchReleasedEventArgs - Copy.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Button.cs" />
+    <Compile Include="ButtonState.cs" />
+    <Compile Include="Switch.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
