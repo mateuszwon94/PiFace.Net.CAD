@@ -19,7 +19,15 @@ All information could be found on git. https://github.com/mateuszwon94/PiFace.Ne
     <FileVersion>1.1.0.0</FileVersion>
     <Version>1.1.0</Version>
     <PackageProjectUrl>https://github.com/mateuszwon94/PiFace.Net.CAD</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <Compile Remove="EventArg\SwitchReleasedEventArgs - Copy.cs" />
